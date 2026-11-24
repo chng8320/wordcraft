@@ -1,0 +1,78 @@
+# The Dataverse fork: follow ArtCraft's main, replay our commits, build our command line.
+# See DATAVERSE.md.
+name: dataverse
+
+on:
+  schedule:
+    - cron: "17 9 * * 1"   # Mondays 09:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: dataverse
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'chng8320/wordcraft'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.replay.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dataverse
+          fetch-depth: 0
+      - name: Update main from ArtCraft
+        run: |
+          git config user.name "dataverse-sync"
+          git config user.email "dataverse-sync@users.noreply.github.com"
+          git remote add upstream https://github.com/storytold/wordcraft.git
+          git fetch upstream main
+          git push origin "refs/remotes/upstream/main:refs/heads/main" --force
+      - name: Replay our commits on top
+        id: replay
+        run: |
+          base=$(git merge-base origin/main HEAD)
+          if [ "$(git rev-parse upstream/main)" = "$base" ]; then echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if git rebase --onto upstream/main "$base"; then
+            git push origin HEAD:dataverse --force-with-lease
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            failed=$(git log -1 --format='%h %s' REBASE_HEAD 2>/dev/null || echo "one of our commits")
+            git rebase --abort
+            gh issue create --title "Dataverse sync: a commit no longer applies on WordCraft $(git rev-parse --short upstream/main)" \
+              --body "Replaying our commits on ArtCraft's latest main stopped at: ${failed}. The dataverse branch was left as it was. Fix that commit on top of the new main, then run this workflow again."
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  build:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dataverse
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build the command line
+        run: cargo build --release -p wordcraft-cli
+      - name: Test the command line crate
+        run: cargo test --release -p wordcraft-cli
+      - name: Name it for the Dataverse
+        run: |
+          mkdir -p out
+          cp target/release/wordcraft-cli out/dataverse-word-cli
+          ./out/dataverse-word-cli --version > out/VERSION.txt
+          git rev-parse HEAD >> out/VERSION.txt
+          cp LICENSE-MIT LICENSE-APACHE NOTICE DATAVERSE.md out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dataverse-word-cli-linux-x86_64
+          path: out/
