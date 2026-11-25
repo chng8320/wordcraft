@@ -5,6 +5,7 @@ use super::actions::{
 use super::autocorrect::autocorrect_options;
 use super::compare::{COMPARE_PARAMS, compare};
 use super::inspect::{accessibility, inspect_doc};
+use super::redact::redact;
 use super::{
     Block, CharProps, CmdError, CommandSpec, InlineObject, NumRef, Paragraph, Selection, StoryRef, Value, delete_selection, json, p, para_block,
     sel_result,
@@ -67,6 +68,8 @@ pub fn specs() -> Vec<CommandSpec> {
         CommandSpec::new("file.accessibility", "Check Accessibility", "Review › Accessibility", accessibility).pure(),
         CommandSpec::new("file.inspect", "Inspect Document", "File › Info", inspect_doc)
             .params(r#"{"remove"?: ["comments", "revisions", "properties", "hidden", "headers"]} → {found: {comments, revisions, properties, hiddenText, hiddenCount, hidden: [{story: "body|header|footer|footnote|endnote|comment|textBox", part?, text}] (at most 1000), truncated, unsupported: [{story, object: "table|opaque", ..}] (hidden text not inspected: table styles, verbatim objects), headers}, removed, residual: [..] (hidden text a removal couldn't reach), removedNotes: [{kind, part, text}] (notes whose hidden reference was removed)}; whole hidden paragraphs go with their marks; the removals are refused while the document tracks changes"#),
+        CommandSpec::new("review.redact", "Redact", "Review › Protect", redact)
+            .params(r#"{"texts"?: [string] (words or phrases), "patterns"?: [regex], "presets"?: ["email" | "phone" | "creditCard" (Luhn-checked) | "iban" (checksum) | "ipAddress" | "url"], "matchCase"?: bool (default false), "wholeWord"?: bool (default true), "mark"?: string (default "█"), "keepLength"?: bool (default true: one mark per character, spaces kept; false: the mark once)} → {redacted, stories, byRule: [{rule, count}], properties: [names changed], notChecked}; every story (body, headers, footers, notes, comments, text boxes, hidden text, tracked changes) and the document properties; never tracked"#),
         CommandSpec::new("file.protect", "Protect Document", "File › Info", |s, v| {
             let mode = p::str(v, "mode").unwrap_or("readOnly");
             s.run("review.restrict", &json!({"mode": mode}))
