@@ -12,6 +12,7 @@ use crate::{CmdError, CmdResult, CommandSpec, Selection, Session, p};
 mod changes;
 mod comments;
 mod proofing;
+mod readability;
 
 pub(crate) use changes::StyleTarget;
 pub use changes::{
@@ -23,6 +24,7 @@ use comments::{
 };
 pub use comments::{comment_list, comment_range_at_caret};
 use proofing::{all_issues, issue_at, next_issue, suggestions, thesaurus, word_count};
+use readability::readability;
 
 pub fn specs() -> Vec<CommandSpec> {
     vec![
@@ -77,6 +79,9 @@ pub fn specs() -> Vec<CommandSpec> {
             .params(r#"{"includeTextBoxes"?: bool}"#)
             // ⌘⇧G is Find Previous on macOS.
             .key(super::non_mac("Mod+Shift+G"))
+            .pure(),
+        CommandSpec::new("review.readability", "Readability Statistics", "Review › Proofing", readability)
+            .params(r#"{"language"?: "en" | "es" | "fr" | "de" | "it" | "vi" | … (default: the document's, Vietnamese when its letters show it), "hardest"?: n (default 5)} → {scope, language, counts, averages, scores: {name: {score, scale}}, readingMinutes, hardestSentences}"#)
             .pure(),
         CommandSpec::new("review.changes", "Reviewing Pane", "Review › Tracking", list_changes).pure(),
         CommandSpec::new("review.spelling", "Spelling & Grammar", "Review › Proofing", next_issue)

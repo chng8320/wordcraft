@@ -26,7 +26,7 @@ command line, runs the automation tests and attaches the program as `dataverse-w
 
 | Commit | What | Offered upstream? |
 |---|---|---|
-| (none yet) | | |
+| review.readability | Review › Proofing › Readability Statistics: counts, averages, the readability formulas that fit the language (English, Spanish, French, German, Italian; LIX and ARI for others; counts only for Vietnamese), reading time, the hardest sentences | not yet |
 
 ## Name
 

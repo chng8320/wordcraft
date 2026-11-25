@@ -64,7 +64,7 @@ jobs:
       - name: Build the command line
         run: cargo build --release -p wordcraft-cli
       - name: Test the command line crate
-        run: cargo test --release -p wordcraft-cli
+        run: cargo test --release -p wordcraft-cli && cargo test --release -p wordcraft-engine --lib readability
       - name: Name it for the Dataverse
         run: |
           mkdir -p out
