@@ -27,9 +27,9 @@ command line, runs the automation tests and attaches the program as `dataverse-w
 | Commit | What | Offered upstream? |
 |---|---|---|
 | review.readability | Review › Proofing › Readability Statistics: counts, averages, the readability formulas that fit the language (English, Spanish, French, German, Italian; LIX and ARI for others; counts only for Vietnamese), reading time, the hardest sentences | not yet |
+| review.redact | Review › Protect › Redact: words, phrases, patterns and checked presets (e-mail, phone, card, IBAN, IP, URL) removed from every story and the document properties, replaced by a mark of the same length, never tracked | not yet |
 
 ## Name
 
 The ArtCraft name and logos are trademarks, not covered by the code licence; modified versions must not use
 them. Our build is called `dataverse-word-cli` and is described as "based on WordCraft by the ArtCraft team".
-| review.redact | Review › Protect › Redact: words, phrases, patterns and checked presets (e-mail, phone, card, IBAN, IP, URL) removed from every story and the document properties, replaced by a mark of the same length, never tracked | not yet |
